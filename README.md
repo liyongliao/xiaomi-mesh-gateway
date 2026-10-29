@@ -2,34 +2,32 @@
 
 小米万兆路由器 RC01、原厂固件 1.1.56 的本地扩展：按 Wi-Fi 下发 IPv4 网关和 DNS，调整主路由 Mesh 漫游候选参数。其他机型和固件未经验证。
 
-## 安装
+![插件界面示例](docs/interface.png)
 
-编译 ARM64 程序：
+*示例界面使用虚构的 Wi-Fi 名称。*
+
+## 一键安装
+
+适用小米万兆路由器 RC01、原厂固件 1.1.56，LAN 地址为 `192.168.31.1`，并已开启 root SSH。通过 SSH 连接路由器后执行：
+
+```sh
+curl -fL https://github.com/liyongliao/xiaomi-mesh-gateway/releases/download/v1.0.0/install.sh -o /tmp/mesh-gateway-install.sh && sh /tmp/mesh-gateway-install.sh
+```
+
+脚本检查设备型号、固件、LAN 地址和已有安装；下载 Release 安装包并验证 SHA-256，备份漫游配置后启动插件。已有安装目录时会停止，以保护原配置；当前版本不支持自动覆盖升级。安装需要路由器能访问 GitHub。安装失败后若目录已创建，请检查日志及配置再手动处理，避免覆盖旧备份。
+
+登录小米后台，点击右下角「Mesh 与 Wi-Fi 分流」。初始配置关闭分流和漫游调整，设置网关、DNS 后再启用。目标网关须在 `192.168.31.0/24` 且实际可访问；客户端重新获取 DHCP 租约后生效。IPv6、手动配置和加密 DNS 不受此功能控制。
+
+### 手动下载或自行编译
+
+[下载 Release 安装包和校验文件](https://github.com/liyongliao/xiaomi-mesh-gateway/releases/tag/v1.0.0)。也可自行编译 ARM64 程序：
 
 ```sh
 go test ./src
 CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags='-s -w' -o plugin/mesh-gateway ./src
 ```
 
-将 `plugin/` 内容复制到路由器 `/userdisk/mesh-gateway/`，然后以 root 执行：
-
-```sh
-chmod 700 /userdisk/mesh-gateway
-chmod 755 /userdisk/mesh-gateway/mesh-gateway /userdisk/mesh-gateway/boot.sh /userdisk/mesh-gateway/service.sh /userdisk/mesh-gateway/service-init
-chmod 600 /userdisk/mesh-gateway/config.json
-mkdir -p /userdisk/mesh-gateway/backup
-chmod 700 /userdisk/mesh-gateway/backup
-cp -p /etc/roam.conf /userdisk/mesh-gateway/backup/roam.conf
-/userdisk/mesh-gateway/service.sh start
-uci set firewall.mesh_gateway=include
-uci set firewall.mesh_gateway.type=script
-uci set firewall.mesh_gateway.path=/userdisk/mesh-gateway/boot.sh
-uci set firewall.mesh_gateway.enabled=1
-uci set firewall.mesh_gateway.reload=1
-uci commit firewall
-```
-
-登录小米后台，点击右下角「Mesh 与 Wi-Fi 分流」。默认关闭分流和漫游调整；设置网关、DNS 后启用。网关目前限制在 192.168.31.0/24；确认网关实际可访问，客户端重新获取 DHCP 租约后生效。IPv6、手动配置和加密 DNS 不受此功能控制。
+自行编译后需将插件文件、备份及启动配置按 `install.sh` 的步骤部署到路由器。
 
 ## Mesh 子节点
 
