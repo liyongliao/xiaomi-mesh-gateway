@@ -1,8 +1,8 @@
 #!/bin/sh
 set -eu
 BASE=/userdisk/mesh-gateway
-URL=https://github.com/liyongliao/xiaomi-mesh-gateway/releases/download/v1.0.0/xiaomi-mesh-gateway-linux-arm64.tar.gz
-EXPECTED=d81065f4e086af5dbee4167364a8a3c748652c33b6e3d8589e0bb3f1e6cbf8d2
+URL=https://github.com/liyongliao/xiaomi-mesh-gateway/releases/download/v1.0.1/xiaomi-mesh-gateway-linux-arm64.tar.gz
+EXPECTED=5704852ba3f5efa303104745251ff470d7c71d95d1275237482ce6fa86b77135
 [ "$(id -u)" = 0 ] || { echo '请以 root 身份运行'; exit 1; }
 command -v uci >/dev/null || { echo '未找到 uci：请在路由器上运行'; exit 1; }
 [ "$(uci -q -c /usr/share/xiaoqiang get xiaoqiang_version.version.HARDWARE)" = RC01 ] || { echo '不支持的路由器型号'; exit 1; }

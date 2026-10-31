@@ -11,7 +11,7 @@
 适用小米万兆路由器 RC01、原厂固件 1.1.56，LAN 地址为 `192.168.31.1`，并已开启 root SSH。通过 SSH 连接路由器后执行：
 
 ```sh
-curl -fL https://github.com/liyongliao/xiaomi-mesh-gateway/releases/download/v1.0.0/install.sh -o /tmp/mesh-gateway-install.sh && sh /tmp/mesh-gateway-install.sh
+curl -fL https://github.com/liyongliao/xiaomi-mesh-gateway/releases/download/v1.0.1/install.sh -o /tmp/mesh-gateway-install.sh && sh /tmp/mesh-gateway-install.sh
 ```
 
 脚本检查设备型号、固件、LAN 地址和已有安装；下载 Release 安装包并验证 SHA-256，备份漫游配置后启动插件。已有安装目录时会停止，以保护原配置；当前版本不支持自动覆盖升级。安装需要路由器能访问 GitHub。安装失败后若目录已创建，请检查日志及配置再手动处理，避免覆盖旧备份。
@@ -20,7 +20,7 @@ curl -fL https://github.com/liyongliao/xiaomi-mesh-gateway/releases/download/v1.
 
 ### 手动下载或自行编译
 
-[下载 Release 安装包和校验文件](https://github.com/liyongliao/xiaomi-mesh-gateway/releases/tag/v1.0.0)。也可自行编译 ARM64 程序：
+[下载 Release 安装包和校验文件](https://github.com/liyongliao/xiaomi-mesh-gateway/releases/tag/v1.0.1)。也可自行编译 ARM64 程序：
 
 ```sh
 go test ./src
@@ -29,9 +29,9 @@ CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags='-s -w' -o plu
 
 自行编译后需将插件文件、备份及启动配置按 `install.sh` 的步骤部署到路由器。
 
-## Mesh 子节点
+## 分流范围
 
-默认不识别子节点。核对子节点 MAC、SSID 和无线接口后，在路由器 `/userdisk/mesh-gateway/config.json` 的 `mesh_nodes` 中填写映射，例如 `"02:00:00:00:00:01":{"wl0":"wl0","wl1":"wl1"}`，然后执行 `/etc/init.d/mesh-gateway restart`。示例 MAC 必须替换。子节点关联信息未同步时 DHCP 使用默认设置，同步后需重新获取租约。漫游参数只修改主路由，实际切换取决于终端和同名网络覆盖。
+分流仅作用于万兆路由器本机的 Wi-Fi。5GHz-Game 可用于需要旁路由的设备，Mesh 子路由继续提供原有 2.4G 和 5G 网络，不做 Game 映射或分流。旧版本曾支持的 `mesh_nodes` 映射已移除。升级后，曾经收到旁路由网关的子节点设备需要重新获取 DHCP 租约。
 
 ## 实现和恢复
 

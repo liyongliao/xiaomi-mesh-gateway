@@ -9,7 +9,7 @@
 <form id="form"><section class="panel"><div class="title"><h2>Wi-Fi 网关与 DNS</h2><label class="toggle"><input id="enabled" type="checkbox">启用按 Wi-Fi 分流</label></div>
 <p class="hint">连接 Game 网络时使用旁路由，另外两个网络继续使用小米主路由。修改后请让设备重新获取 DHCP 租约。</p>
 <div class="table-scroll"><table><thead><tr><th>无线网络</th><th>默认网关</th><th>DNS 服务器</th><th>主路由连接</th></tr></thead><tbody id="profiles"></tbody></table></div>
-<details><summary>生效范围与注意事项</summary><p class="hint">主路由按无线入口识别设备，已配置映射的 Mesh 子节点按小米 Mesh 连接信息识别，保留现有网段、静态 IP 绑定和 Mesh 回程。子节点新设备的连接信息尚未同步时，会暂时获得默认设置；信息同步后再次续租即可。此设置仅控制 IPv4 DHCP，设备手动配置的 DNS、加密 DNS 及 IPv6 不在本设置范围内。服务停止时 DHCP 恢复默认下发，不阻断正常上网。</p></details>
+<details><summary>生效范围与注意事项</summary><p class="hint">仅根据主路由本机的无线入口下发 IPv4 网关与 DNS。Mesh 子路由的 2.4G 和 5G 继续使用原来的网络设置，不参与 Game 分流。设备需重新获取 DHCP 租约后生效；手动配置的网络、加密 DNS 和 IPv6 不受这些设置控制。</p></details>
 </section>
 <section class="panel"><div class="title"><h2>Mesh 漫游优化 <small>主路由</small></h2><label class="toggle"><input id="roam-enabled" type="checkbox">启用候选条件优化</label></div>
 <p class="hint">降低候选节点必须达到的信号门槛，让信号已有改善的节点更容易进入候选列表。实际切换仍由小米漫游服务与终端共同决定。</p>
@@ -33,7 +33,7 @@ function render(s,initial){current=s;const c=s.config;
  for(const p of s.profiles){const tr=document.createElement('tr'),name=document.createElement('td');name.append(text(document.createElement('div'),p.ssid));name.firstChild.className='wifi-name';const meta=text(document.createElement('span'),p.ifname+' · '+(p.ifname==='wl1'?'2.4 GHz':'5 GHz'));meta.className='meta';name.append(meta);tr.append(name);
  for(const [field,label] of [['gateway','默认网关'],['dns','DNS 服务器']]){const td=document.createElement('td'),input=document.createElement('input');input.type='text';input.required=true;input.id=p.ifname+'-'+field;input.setAttribute('aria-label',p.ssid+' '+label);input.value=c.profiles[p.ifname][field];input.autocomplete='off';td.append(input);tr.append(td)}
  const count=document.createElement('td');count.append(text(document.createElement('span'),String(p.clients.length)+' 台'));if(p.clients.length){const signals=p.clients.map(v=>v.rssi),r=text(document.createElement('span'),Math.min(...signals)+' 至 '+Math.max(...signals)+' dBm');r.className='meta';count.append(r)}tr.append(count);el('profiles').append(tr)} }
- const nodes=s.topology.leafs||[];text(el('node'),'Mesh 子节点：'+(nodes.map(n=>n.ip+' · '+n.hardware+' · '+(n.link_type==='wired'?'有线回程':'无线回程')).join('；')||'未发现')+'。已配置映射的 Mesh 子节点分流已接入；漫游参数仅在主路由调整。');
+ const nodes=s.topology.leafs||[];text(el('node'),'Mesh 子节点：'+(nodes.map(n=>n.ip+' · '+n.hardware+' · '+(n.link_type==='wired'?'有线回程':'无线回程')).join('；')||'未发现')+'。子路由保持原有网络设置；此处漫游参数仅调整主路由。');
  const recent=s.runtime.last||[];text(el('events'),recent.length?recent.slice().reverse().map(v=>v.time+'  '+v.interface+(v.via?' [Mesh]':'')+'  '+v.mac.match(/.{2}/g).join(':')+'  →  '+v.gateway).join('\n'):'尚未捕获到新的 DHCP 请求。已连接设备需续租后才能看到记录。');
 }
 async function refresh(initial=false){try{const r=await fetch(root+'mesh_gateway_status',{cache:'no-store'});if(!r.ok)throw Error('读取失败，请重新登录管理后台。');render(await r.json(),initial);if(initial)message('当前配置已读取。保存后，重新连接 Wi-Fi 或更新 DHCP 租约即可使用新的网关和 DNS。')}catch(e){message(e.message,true)}}

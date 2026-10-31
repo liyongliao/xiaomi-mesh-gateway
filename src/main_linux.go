@@ -2,14 +2,12 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"os/signal"
 	"strconv"
 	"strings"
@@ -125,24 +123,6 @@ func saveState() {
 	_ = os.Rename("/tmp/mesh-gateway-status.json.new", "/tmp/mesh-gateway-status.json")
 }
 
-func remoteInterfaceFor(mac []byte, c Config) (string, string) {
-	if len(c.MeshNodes) == 0 {
-		return "", ""
-	}
-	parts := make([]string, len(mac))
-	for i, b := range mac {
-		parts[i] = fmt.Sprintf("%02X", b)
-	}
-	request, _ := json.Marshal(map[string]string{"hw": strings.Join(parts, ":")})
-	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
-	defer cancel()
-	raw, err := exec.CommandContext(ctx, "/bin/ubus", "call", "trafficd", "hw", string(request)).Output()
-	if err != nil {
-		return "", ""
-	}
-	return meshInterface(raw, c)
-}
-
 func main() {
 	time.Local = time.FixedZone("Asia/Shanghai", 8*60*60)
 	state.Started = time.Now().Format(time.RFC3339)
@@ -232,9 +212,6 @@ func main() {
 			c := loadConfig()
 			if ok && c.Enabled {
 				iface = interfaceFor(mac, phys)
-				if iface == "" {
-					iface, via = remoteInterfaceFor(mac, c)
-				}
 				if _, exists := c.Profiles[iface]; exists {
 					if modified, err := tagPacket(packet, iface); err == nil {
 						attrs = append(attrs, attr(10, modified)...)

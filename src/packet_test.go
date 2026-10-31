@@ -70,20 +70,3 @@ func TestRejectMalformed(t *testing.T) {
 		t.Fatal("unmanaged port")
 	}
 }
-
-func TestVerifiedMeshMapping(t *testing.T) {
-	c := Config{MeshNodes: map[string]map[string]string{"02:00:00:00:00:01": {"wl0": "wl0", "wl1": "wl1"}}}
-	for _, tc := range []struct{ raw, want string }{
-		{`{"parent":"02:00:00:00:00:01","ifname":"wl0","assoc":1}`, "wl0"},
-		{`{"parent":"02:00:00:00:00:01","ifname":"wl1","assoc":1}`, "wl1"},
-		{`{"parent":"unknown","ifname":"wl0","assoc":1}`, ""},
-		{`{"parent":"02:00:00:00:00:01","ifname":"wl0","assoc":0}`, ""},
-		{`{"parent":"02:00:00:00:00:01","ifname":"eth1","assoc":1}`, ""},
-		{`not json`, ""},
-	} {
-		got, _ := meshInterface([]byte(tc.raw), c)
-		if got != tc.want {
-			t.Fatalf("%s: got %q, want %q", tc.raw, got, tc.want)
-		}
-	}
-}

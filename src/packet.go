@@ -3,9 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
-	"strings"
 )
 
 type Profile struct {
@@ -19,28 +17,9 @@ type Roam struct {
 	MinGain  int  `json:"min_gain"`
 }
 type Config struct {
-	Enabled   bool                         `json:"enabled"`
-	Profiles  map[string]Profile           `json:"profiles"`
-	Roam      Roam                         `json:"roam"`
-	MeshNodes map[string]map[string]string `json:"mesh_nodes,omitempty"`
-}
-
-// Accept remote interface mappings only for nodes verified against their SSIDs.
-func meshInterface(raw []byte, c Config) (string, string) {
-	var station struct {
-		Parent string `json:"parent"`
-		Ifname string `json:"ifname"`
-		Assoc  int    `json:"assoc"`
-	}
-	if json.Unmarshal(raw, &station) != nil || station.Assoc != 1 {
-		return "", ""
-	}
-	parent := strings.ToUpper(station.Parent)
-	iface := c.MeshNodes[parent][station.Ifname]
-	if iface != "wl0" && iface != "wl1" && iface != "wl2" {
-		return "", ""
-	}
-	return iface, parent
+	Enabled  bool               `json:"enabled"`
+	Profiles map[string]Profile `json:"profiles"`
+	Roam     Roam               `json:"roam"`
 }
 
 // packetMAC admits only complete, unfragmented IPv4 DHCP client requests.

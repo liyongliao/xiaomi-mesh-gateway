@@ -83,7 +83,6 @@ function save()
     local fs=require("nixio.fs")
     if not fs.mkdir("/tmp/mesh-gateway-save.lock") then respond({error="另一项设置正在保存，请稍后重试。"},409);return end
     local old=read(base.."/config.json")
-    if old then local existing=json.decode(old);clean.mesh_nodes=existing and existing.mesh_nodes end
     local new=base.."/config.json.new"
     local f=io.open(new,"w")
     if not f then fs.rmdir("/tmp/mesh-gateway-save.lock");respond({error="无法写入插件目录。"},500);return end
